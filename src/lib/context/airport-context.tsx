@@ -68,24 +68,7 @@ export function AirportProvider({ children }: { children: React.ReactNode }) {
   }
 
   const getFallbackAirports = (): Airport[] => [
-    {
-      skyId: "JFK",
-      entityId: "95565058",
-      name: "New York John F. Kennedy",
-      iata: "JFK",
-      city: "New York",
-      country: "United States",
-      type: "AIRPORT",
-    },
-    {
-      skyId: "LAX",
-      entityId: "95565059",
-      name: "Los Angeles International",
-      iata: "LAX",
-      city: "Los Angeles",
-      country: "United States",
-      type: "AIRPORT",
-    }
+    
   ]
 
   const initialize = async () => {

@@ -31,8 +31,6 @@ export async function GET(request: NextRequest) {
       },
     }
 
-    console.log("Request headers:", options.headers)
-
     const response = await fetch(apiUrl, options)
 
     console.log("Response headers:", Object.fromEntries(response.headers.entries()))
