@@ -1,3 +1,4 @@
+import { Itinerary } from "@/src/lib/types"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
     const data = await response.json()
     // Transform the API
     const transformedFlights =
-      data.data?.itineraries?.map((itinerary, index: number) => {
+      data.data?.itineraries?.map((itinerary:Itinerary, index: number) => {
         const firstLeg = itinerary.legs?.[0]
         const lastLeg = itinerary.legs?.[itinerary.legs.length - 1]
 

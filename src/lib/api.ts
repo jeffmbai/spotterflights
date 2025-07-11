@@ -1,4 +1,4 @@
-import type { FlightSearchParams, FlightResult, Airport } from "./types"
+import type { FlightSearchParams, FlightResult, Airport, Presentation, Navigation } from "./types"
 
 // Search airports 
 export async function searchAirports(query: string): Promise<Airport[]> {
@@ -9,7 +9,6 @@ export async function searchAirports(query: string): Promise<Airport[]> {
     }
 
     const apiUrl = `/api/airports/search?query=${encodeURIComponent(query)}&locale=en-US`
-   
 
     const response = await fetch(apiUrl, {
       method: "GET",
@@ -32,10 +31,12 @@ export async function searchAirports(query: string): Promise<Airport[]> {
     let airports: Airport[] = []
 
     if (apiResponse.status === true && Array.isArray(apiResponse.data)) {
-      console.log("✅ Processing Sky Scrapper API format with", apiResponse.data.length, "items")
-
-      airports = apiResponse.data.map((item: any, index: number) => {
-        console.log(`Processing item ${index + 1}:`, JSON.stringify(item, null, 2))
+      airports = apiResponse.data.map((item: {
+        skyId?: string;
+        entityId?: string;
+        presentation?: Presentation;
+        navigation?: Navigation;
+      } , index: number) => {
 
         const presentation = item.presentation || {}
         const navigation = item.navigation || {}
