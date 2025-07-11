@@ -2,29 +2,15 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Search, ArrowLeftRight, MapPin, Users, Plane } from "lucide-react"
+import { Search, ArrowLeftRight, Users, Plane } from "lucide-react"
+import { AirportSearch } from "./AirportSearch"
 import { DatePicker } from "./ui/calender"
-import { SimpleInput } from "./ui/input"
+import type { SearchParams, SearchFormProps } from "../lib/types"
 
-
-interface SearchParams {
-  from: string
-  to: string
-  departDate: Date | undefined
-  returnDate: Date | undefined
-  passengers: number
-  tripType: string
-}
-
-interface SearchProps {
-  onSearch: (params: SearchParams) => void
-  isSearching?: boolean
-}
-
-export function SearchForm({ onSearch, isSearching = false }: SearchProps) {
+export function SearchForm({ onSearch, isSearching = false, fullHeight = true }: SearchFormProps) {
   const [searchParams, setSearchParams] = useState<SearchParams>({
-    from: "",
-    to: "",
+    fromAirport: null,
+    toAirport: null,
     departDate: undefined,
     returnDate: undefined,
     passengers: 1,
@@ -36,10 +22,9 @@ export function SearchForm({ onSearch, isSearching = false }: SearchProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validation
     const newErrors: Record<string, string> = {}
-    if (!searchParams.from) newErrors.from = "Origin is required"
-    if (!searchParams.to) newErrors.to = "Destination is required"
+    if (!searchParams.fromAirport) newErrors.from = "Origin airport is required"
+    if (!searchParams.toAirport) newErrors.to = "Destination airport is required"
     if (!searchParams.departDate) newErrors.departDate = "Departure date is required"
     if (searchParams.tripType === "roundtrip" && !searchParams.returnDate) {
       newErrors.returnDate = "Return date is required for round trip"
@@ -55,28 +40,18 @@ export function SearchForm({ onSearch, isSearching = false }: SearchProps) {
   const swapAirports = () => {
     setSearchParams((prev) => ({
       ...prev,
-      from: prev.to,
-      to: prev.from,
+      fromAirport: prev.toAirport,
+      toAirport: prev.fromAirport,
     }))
-    // Clear errors for swapped fields
-    setErrors((prev) => ({
-      ...prev,
-      from: "",
-      to: "",
-    }))
+    setErrors((prev) => ({ ...prev, from: "", to: "" }))
   }
 
-  const handleInputChange = (field: keyof SearchParams, value: string | number | Date | undefined) => {
-    setSearchParams((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: "",
-      }))
+  const handleInputChange = (field: keyof SearchParams, value: unknown) => {
+    setSearchParams((prev) => ({ ...prev, [field]: value }))
+
+    const errorField = field === "fromAirport" ? "from" : field === "toAirport" ? "to" : field
+    if (errors[errorField]) {
+      setErrors((prev) => ({ ...prev, [errorField]: "" }))
     }
   }
 
@@ -85,10 +60,10 @@ export function SearchForm({ onSearch, isSearching = false }: SearchProps) {
   tomorrow.setDate(tomorrow.getDate() + 1)
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4">
-      <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+    <div className={`w-full max-w-6xl mx-auto p-4 ${fullHeight ? 'h-screen' : ''}`}>
+      <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/20">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white relative z-20">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
               <Plane className="h-5 w-5" />
@@ -98,44 +73,26 @@ export function SearchForm({ onSearch, isSearching = false }: SearchProps) {
 
           <div className="flex flex-wrap gap-6">
             <label className="flex items-center gap-3 cursor-pointer group">
-              <div className="relative">
-                <input
-                  type="radio"
-                  name="tripType"
-                  value="roundtrip"
-                  checked={searchParams.tripType === "roundtrip"}
-                  onChange={(e) => handleInputChange("tripType", e.target.value)}
-                  className="sr-only"
-                />
-                <div
-                  className={`w-5 h-5 rounded-full border-2 border-white/60 flex items-center justify-center transition-all ${
-                    searchParams.tripType === "roundtrip" ? "border-white bg-white" : "group-hover:border-white/80"
-                  }`}
-                >
-                  {searchParams.tripType === "roundtrip" && <div className="w-2 h-2 bg-blue-600 rounded-full"></div>}
-                </div>
-              </div>
+              <input
+                type="radio"
+                name="tripType"
+                value="roundtrip"
+                checked={searchParams.tripType === "roundtrip"}
+                onChange={(e) => handleInputChange("tripType", e.target.value)}
+                className="w-4 h-4 text-blue-600"
+              />
               <span className="font-medium">Round trip</span>
             </label>
 
             <label className="flex items-center gap-3 cursor-pointer group">
-              <div className="relative">
-                <input
-                  type="radio"
-                  name="tripType"
-                  value="oneway"
-                  checked={searchParams.tripType === "oneway"}
-                  onChange={(e) => handleInputChange("tripType", e.target.value)}
-                  className="sr-only"
-                />
-                <div
-                  className={`w-5 h-5 rounded-full border-2 border-white/60 flex items-center justify-center transition-all ${
-                    searchParams.tripType === "oneway" ? "border-white bg-white" : "group-hover:border-white/80"
-                  }`}
-                >
-                  {searchParams.tripType === "oneway" && <div className="w-2 h-2 bg-blue-600 rounded-full"></div>}
-                </div>
-              </div>
+              <input
+                type="radio"
+                name="tripType"
+                value="oneway"
+                checked={searchParams.tripType === "oneway"}
+                onChange={(e) => handleInputChange("tripType", e.target.value)}
+                className="w-4 h-4 text-blue-600"
+              />
               <span className="font-medium">One way</span>
             </label>
 
@@ -157,37 +114,35 @@ export function SearchForm({ onSearch, isSearching = false }: SearchProps) {
         </div>
 
         {/* Search Form */}
-        <form onSubmit={handleSubmit} className="p-6 z-40">
+        <form onSubmit={handleSubmit} className="p-6 relative z-10">
           {/* Desktop Layout */}
-          <div className="hidden lg:grid lg:grid-cols-5 gap-6 mb-4">
-            <SimpleInput
+          <div className="hidden lg:grid lg:grid-cols-5 gap-6 mb-8">
+            <AirportSearch
               label="From"
-              placeholder="New York (JFK)"
-              value={searchParams.from}
-              onChange={(e) => handleInputChange("from", e.target.value)}
-              icon={<MapPin className="h-5 w-5" />}
+              placeholder="Origin airport"
+              value={
+                searchParams.fromAirport ? `${searchParams.fromAirport.name} (${searchParams.fromAirport.iata})` : ""
+              }
+              onChange={(airport) => handleInputChange("fromAirport", airport)}
               error={errors.from}
-              
             />
 
-            <div className="flex items-end justify-center pb-4">
+            <div className="flex items-end justify-center pb-8">
               <button
                 type="button"
                 onClick={swapAirports}
-                className="p-3 bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 rounded-xl transition-all duration-200 transform hover:scale-105 group"
+                className="p-3 bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 rounded-xl transition-all duration-200 transform hover:scale-105"
               >
-                <ArrowLeftRight className="h-5 w-5 text-blue-600 group-hover:text-blue-700" />
+                <ArrowLeftRight className="h-5 w-5 text-blue-600" />
               </button>
             </div>
 
-            <SimpleInput
+            <AirportSearch
               label="To"
-              placeholder="Los Angeles (LAX)"
-              value={searchParams.to}
-              onChange={(e) => handleInputChange("to", e.target.value)}
-              icon={<MapPin className="h-5 w-5" />}
+              placeholder="Destination airport"
+              value={searchParams.toAirport ? `${searchParams.toAirport.name} (${searchParams.toAirport.iata})` : ""}
+              onChange={(airport) => handleInputChange("toAirport", airport)}
               error={errors.to}
-              
             />
 
             <DatePicker
@@ -214,14 +169,12 @@ export function SearchForm({ onSearch, isSearching = false }: SearchProps) {
           {/* Mobile Layout */}
           <div className="lg:hidden space-y-6 mb-8">
             <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-end">
-              <SimpleInput
+              <AirportSearch
                 label="From"
-                placeholder="NYC"
-                value={searchParams.from}
-                onChange={(e) => handleInputChange("from", e.target.value)}
-                icon={<MapPin className="h-4 w-4" />}
+                placeholder="Origin"
+                value={searchParams.fromAirport ? searchParams.fromAirport.iata : ""}
+                onChange={(airport) => handleInputChange("fromAirport", airport)}
                 error={errors.from}
-               
               />
 
               <button
@@ -232,18 +185,16 @@ export function SearchForm({ onSearch, isSearching = false }: SearchProps) {
                 <ArrowLeftRight className="h-4 w-4 text-blue-600" />
               </button>
 
-              <SimpleInput
+              <AirportSearch
                 label="To"
-                placeholder="LAX"
-                value={searchParams.to}
-                onChange={(e) => handleInputChange("to", e.target.value)}
-                icon={<MapPin className="h-4 w-4" />}
+                placeholder="Destination"
+                value={searchParams.toAirport ? searchParams.toAirport.iata : ""}
+                onChange={(airport) => handleInputChange("toAirport", airport)}
                 error={errors.to}
-                
               />
             </div>
 
-            <div className={`grid ${searchParams.tripType === "roundtrip" ? "grid-cols-2" : "grid-cols-1"} gap-4 z-50`}>
+            <div className={`grid ${searchParams.tripType === "roundtrip" ? "grid-cols-2" : "grid-cols-1"} gap-4`}>
               <DatePicker
                 label="Departure"
                 value={searchParams.departDate}
