@@ -77,3 +77,68 @@ export interface FlightCardProps {
   flight: FlightResult
   onSelect?: (flightId: string) => void
 }
+
+export interface Presentation {
+  suggestionTitle?: string;
+  subtitle?: string;
+  title?: string;
+}
+
+export interface FlightParams {
+  skyId?: string;
+  entityId?: string;
+  localizedName?: string;
+}
+
+export interface Navigation {
+  relevantFlightParams?: FlightParams;
+  entityType?: 'AIRPORT' | 'CITY' | string;
+  localizedName?: string;
+}
+
+export interface AirportContextType {
+  airports: Airport[]
+  isLoading: boolean
+  isReady: boolean
+  searchAirports: (query: string) => Airport[]
+  initialize: () => Promise<void>
+}
+
+
+export interface Carrier {
+  marketing?: Array<{
+    name: string;
+  }>;
+}
+
+export interface Segment {
+  flightNumber?: string;
+  aircraft?: {
+    name: string;
+  };
+}
+
+export interface AirportInfo {
+  name?: string;
+  displayCode?: string;
+}
+
+export interface Leg {
+  carriers?: Carrier;
+  segments?: Segment[];
+  origin?: AirportInfo;
+  destination?: AirportInfo;
+  departure?: string;
+  arrival?: string;
+}
+
+export interface ItineraryPrice {
+  raw?: number;
+}
+
+export interface Itinerary {
+  legs?: Leg[];
+  durationInMinutes?: number;
+  price?: ItineraryPrice;
+}
+

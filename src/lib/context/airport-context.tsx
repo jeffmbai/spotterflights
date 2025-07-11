@@ -2,15 +2,8 @@
 
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
-import type { Airport } from "../types"
+import type { Airport, AirportContextType, Navigation, Presentation } from "../types"
 
-interface AirportContextType {
-  airports: Airport[]
-  isLoading: boolean
-  isReady: boolean
-  searchAirports: (query: string) => Airport[]
-  initialize: () => Promise<void>
-}
 
 const AirportContext = createContext<AirportContextType | undefined>(undefined)
 
@@ -27,7 +20,12 @@ export function AirportProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false)
   const [isReady, setIsReady] = useState(false)
 
-  const transformAirportData = (item: any): Airport => {
+  const transformAirportData = (item: {
+  skyId?: string;
+  entityId?: string;
+  presentation?: Presentation;
+  navigation?: Navigation;
+}): Airport => {
     const presentation = item.presentation || {}
     const navigation = item.navigation || {}
     const flightParams = navigation.relevantFlightParams || {}
